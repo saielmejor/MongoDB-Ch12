@@ -16,16 +16,26 @@ class Product {
   //connect mongodb and save the product
   save() {
     const db = getDb(); //connects to database
-    db.collection("products")
+    return db
+      .collection("products")
       .insertOne(this)
-      .then(result=>{ 
-        console.log(result )
+      .then((result) => {
+        console.log(result);
       })
       .catch((err) => {
         console.log(err);
       });
   }
-}
 
+  static fetchAll() {
+    const db=getDb()
+    return db.collection("products").find().toArray().then(products=>{ 
+      console.log(products) ; 
+      return products
+    }).catch(err=>{ 
+      console.log(err)
+    }); // returns a cursor which allows to connect us to the documents
+  }
+}
 
 module.exports = Product;
