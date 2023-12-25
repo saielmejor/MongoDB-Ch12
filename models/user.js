@@ -64,6 +64,17 @@ class User {
         });
       });
   }
+  deleteItemFromCart(productId){ 
+    const updatedCartItems=this.cart.items.filter(item=>{ 
+        return item.productId.toString() !== productId.toString();  //return false
+    })
+    const db = getDb();
+    return db.collection("users").updateOne(
+      { _id: new ObjectId(this._id) },
+      { $set: { cart: {items:updatedCartItems} } } // override the existing product in the cart with new product with quantity 1
+    );
+  
+}
   static findById(userId) {
     const db = getDb();
     return db
