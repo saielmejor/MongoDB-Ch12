@@ -2,7 +2,7 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-
+const mongoose=require('mongoose')
 const errorController = require("./controllers/error");
 
 const mongoConnect=require('./util/database').mongoConnect
@@ -36,9 +36,15 @@ app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(errorController.get404);
 
-mongoConnect(()=>{ 
-  //add if the user id exist 
+// mongoConnect(()=>{ 
+//   //add if the user id exist 
 
-  app.listen(3000)
+//   app.listen(3000)
+// })
+
+mongoose.connect("mongodb+srv://saiken1:Welcome100@cluster0.5ufzjqa.mongodb.net/?retryWrites=true&w=majority").then(result=>{ 
+  app.listen(3000) 
+  console.log('Connected')
+}).catch(err=>{ 
+  console.log(err)
 })
-

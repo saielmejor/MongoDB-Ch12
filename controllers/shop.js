@@ -101,7 +101,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
 
 exports.getOrders = (req, res, next) => {
   req.user
-    .getOrders({include:['products']}) // you can only use include if you have association between roders and items 
+    .getOrders() // you can only use include if you have association between roders and items 
     .then(orders=>{ 
       res.render("shop/orders", {
         path: "/orders",
@@ -118,31 +118,7 @@ exports.getOrders = (req, res, next) => {
 exports.postOrder = (req, res, next) => {
   let fetchedCart;
   req.user
-    .getCart()
-    .then((cart) => {
-      fetchedCart = cart;
-      return cart.getProducts();
-    })
-    .then((products) => {
-      return req.user
-        .createOrder()
-        .then((order) => {
-          return order.addProducts(
-            products.map((product) => {
-              product.orderItem = { quantity: product.cartItem.quantity }; // get the quantity from the cart item  and adds it to the order array
-              return product; //stores the array in product
-            })
-          );
-        })
-        .catch((err) => {
-          console.log(err);
-        }); //creates the order
-      console.log(products);
-    })
-    .then((result) => {
-      return fetchedCart.setProducts(null);
-      //removed the items from the cart by setting it to null
-    })
+    .addOrder()
     .then((result) => {
       res.redirect("/orders");
     })
@@ -156,4 +132,4 @@ exports.getCheckout = (req, res, next) => {
     path: "/checkout",
     pageTitle: "Checkout",
   });
-};
+};  

@@ -31,7 +31,7 @@ class User {
     } else {
       updatedCartItems.push({
         productId: new ObjectId(product._id),
-        quantity: newQuantity + 1,
+        quantity: newQuantity,
       });
     }
     //
@@ -59,22 +59,59 @@ class User {
             ...p,
             quantity: this.cart.items.find((i) => {
               return i.productId.toString() === p._id.toString();
-            }).quantity
+            }).quantity,
           };
         });
       });
   }
-  deleteItemFromCart(productId){ 
-    const updatedCartItems=this.cart.items.filter(item=>{ 
-        return item.productId.toString() !== productId.toString();  //return false
-    })
+  deleteItemFromCart(productId) {
+    const updatedCartItems = this.cart.items.filter((item) => {
+      return item.productId.toString() !== productId.toString(); //return false
+    });
     const db = getDb();
     return db.collection("users").updateOne(
       { _id: new ObjectId(this._id) },
-      { $set: { cart: {items:updatedCartItems} } } // override the existing product in the cart with new product with quantity 1
+      { $set: { cart: { items: updatedCartItems } } } // override the existing product in the cart with new product with quantity 1
     );
-  
-}
+  }
+  addOrder() {
+    // add orders
+    const db = getDb();
+    return this.getCart()
+      .then((products) => {
+        //create an order inside then block
+        const order = {
+          items: products,
+          //adding the user as part of the order
+          user: {
+            _id: new ObjectId(this._id),
+            name: this.name,
+          },
+        };
+        return db.collection("orders").insertOne(order);
+      })
+      .then((result) => {
+        //clean out the cart
+        this.cart = { item: [] };
+        return db
+          .collection("users")
+          .updateOne(
+            { _id: new ObjectId(this._id) },
+            { $set: { cart: { items: [] } } }
+          );
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  getOrders() {
+    const db = getDb();
+    return db
+      .collection("orders")
+      .find({ "user._id": new ObjectId(this._id) })
+      .toArray();
+  }
   static findById(userId) {
     const db = getDb();
     return db
