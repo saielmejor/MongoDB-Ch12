@@ -2,14 +2,12 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const mongoose=require('mongoose')
+const mongoose = require("mongoose");
 const errorController = require("./controllers/error");
 
-const mongoConnect=require('./util/database').mongoConnect
+const mongoConnect = require("./util/database").mongoConnect;
 
-const User=require('./models/user') 
-
-
+const User = require("./models/user");
 
 const app = express();
 
@@ -21,30 +19,47 @@ const shopRoutes = require("./routes/shop");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
-
-
+//middleware to find user
 app.use((req, res, next) => {
-  User.findById('65884a7fbd698cc4d49491e5').then(user=>{
-    req.user= new User(user.name,user.email,user.cart,user._id); //allows to work with database and modify the database  
+  User.findById('658ca1cfa92ad0246833e461').then(user=>{
+    req.user= user //allows to the user in the request. user 
     next()
-  }).catch(err=>{ 
+  }).catch(err=>{
     console.log(err)
   })
-  // next() //call next otherwise other income request is dead  
+  // next() //call next otherwise other income request is dead
 });
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(errorController.get404);
 
-// mongoConnect(()=>{ 
-//   //add if the user id exist 
+// mongoConnect(()=>{
+//   //add if the user id exist
 
 //   app.listen(3000)
 // })
 
-mongoose.connect("mongodb+srv://saiken1:Welcome100@cluster0.5ufzjqa.mongodb.net/?retryWrites=true&w=majority").then(result=>{ 
-  app.listen(3000) 
-  console.log('Connected')
-}).catch(err=>{ 
-  console.log(err)
-})
+mongoose
+  .connect(
+    "mongodb+srv://saiken1:Welcome100@cluster0.5ufzjqa.mongodb.net/shopp?retryWrites=true&w=majority"
+  )
+  .then((result) => { 
+    User.findOne().then(user=>{ 
+      if( !user){ 
+        const user= new User({ 
+          name:'Saiken', 
+          email:'Saikenh@gmail.com', 
+          cart:{ 
+            items:[]
+          }
+        }) 
+        user.save()
+      }
+    })
+    
+    app.listen(3000);
+    console.log("Connected");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
