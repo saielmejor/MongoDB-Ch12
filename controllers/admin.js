@@ -20,8 +20,8 @@ exports.postAddProduct = (req, res, next) => {
     title: title,
     price: price,
     description: description,
-    imageUrl: imageUrl, 
-    userId:req.user// access to the user id from request 
+    imageUrl: imageUrl,
+    userId: req.user, // access to the user id from request
   }); // save it as a constructor include the user id
   product
     .save()
@@ -37,6 +37,8 @@ exports.postAddProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => {
   Product.find()
+    .select("title price -_id")
+    .populate("userId", "name") // populates the user id 
     .then((products) => {
       res.render("admin/products", {
         prods: products,
@@ -80,7 +82,7 @@ exports.postEditProduct = (req, res, next) => {
   const updatedDesc = req.body.description;
 
   Product.findById(prodId)
-    .then(product => {
+    .then((product) => {
       product.title = updateTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;

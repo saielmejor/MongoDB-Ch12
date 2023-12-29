@@ -149,7 +149,34 @@ const userSchema = new Schema({
     ],
   },
 });
+//user schema 
+userSchema.methods.addToCart=function(product){ 
+  //add your own logic by using the method 
+      // check if cart contains the product
 
+    const cartProductIndex = this.cart.items.findIndex((cp) => {
+      // finds the product if it exist in the cart
+      return cp.productId.toString() === product._id.toString();
+    });
+    let newQuantity = 1;
+    const updatedCartItems = [...this.cart.items]; // gets all the cart items and inserts it into an array
+
+    if (cartProductIndex >= 0) {
+      newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+      updatedCartItems[cartProductIndex].quantity = newQuantity;
+    } else {
+      updatedCartItems.push({
+        productId: product._id,//store the productId
+        quantity: newQuantity,
+      });
+    }
+    const updatedCart={ 
+      items: updatedCartItems
+    } ; 
+    //set the cart to updated cart 
+    this.cart=updatedCart; 
+    return this.save() // use the save method to save it
+}
 module.exports = mongoose.model("User", userSchema);
 
 // module.exports = User;
