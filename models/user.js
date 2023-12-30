@@ -177,6 +177,19 @@ userSchema.methods.addToCart=function(product){
     this.cart=updatedCart; 
     return this.save() // use the save method to save it
 }
+
+//user schema method
+userSchema.methods.removeCart=function (productId){ 
+  const updatedCartItems=this.cart.items.filter(item=>{ 
+    return item.productId.toString() !== productId.toString()
+  }) 
+  this.cart.items=updatedCartItems  // returns only items that do not have the same product id.   
+  return this.save(); 
+} 
+userSchema.methods.clearCart=function( ){ 
+  this.cart={items:[]}; 
+  return this.save();
+}
 module.exports = mongoose.model("User", userSchema);
 
 // module.exports = User;
