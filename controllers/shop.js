@@ -11,7 +11,7 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: "All products",
         path: "/products",
-        isAuthenticated:req.isLoggedIn
+        isAuthenticated:req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -29,7 +29,7 @@ exports.getProduct = (req, res, next) => {
         product: product,
         pageTitle: product.title,
         path: "/products",
-        isAuthenticated:req.isLoggedIn
+        isAuthenticated:req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -45,7 +45,7 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: "Shop",
         path: "/",
-        isAuthenticated:req.isLoggedIn
+        isAuthenticated:req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -62,7 +62,7 @@ exports.getCart = (req, res, next) => {
         path: "/cart",
         pageTitle: "Your Cart",
         products: products,
-        isAuthenticated:req.isLoggedIn
+        isAuthenticated:req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -98,14 +98,14 @@ exports.postCartDeleteProduct = (req, res, next) => {
 
 exports.getOrders = (req, res, next) => {
   // finds the user using the orders collection
-  Order.find({ "user.userId": req.user._id })
+  Order.find({ "user.userId": req.session.user._id })
     .then((orders) => {
       res.render("shop/orders", {
         path: "/orders",
         pageTitle: "Your Orders",
         orders: orders,
          //retrieves all orders
-         isAuthenticated:req.isLoggedIn
+         isAuthenticated:req.session.isLoggedIn
       });
     })
     .catch((err) => {
@@ -124,8 +124,8 @@ exports.postOrder = (req, res, next) => {
       });
       const order = new Order({
         user: {
-          name: req.user.name,
-          userId: req.user,
+          name: req.session.user.name,
+          userId: req.session.user,
         },
         products: products,
       });
@@ -147,6 +147,6 @@ exports.getCheckout = (req, res, next) => {
   res.render("shop/checkout", {
     path: "/checkout",
     pageTitle: "Checkout",
-    isAuthenticated:req.isLoggedIn
+    isAuthenticated:req.session.isLoggedIn
   });
 };

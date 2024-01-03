@@ -10,9 +10,12 @@ const errorController = require("./controllers/error");
 const mongoConnect = require("./util/database").mongoConnect;
 
 const User = require("./models/user");
-
+const MONGODB_URI=   "mongodb+srv://saiken1:Welcome100@cluster0.5ufzjqa.mongodb.net/shopp?retryWrites=true&w=majority"
 const app = express();
-const store=new MongoDBStore({})
+const store=new MongoDBStore({
+  uri:MONGODB_URI,
+  collection: 'sessions',
+}) //cosntructor function
 
 app.set("view engine", "ejs");
 app.set("views", "views");
@@ -24,31 +27,17 @@ const authRoutes = require("./routes/auth");
 app.use(bodyParser.urlencoded({ extended: false })); 
 app.use(express.static(path.join(__dirname, "public"))); 
 
-app.use(session({secret:'my secret',resave:'false',saveUninitialized:false}))
-//middleware to find user
-app.use((req, res, next) => {
-  User.findById('658ca1cfa92ad0246833e461').then(user=>{
-    req.user= user //allows to the user in the request. user 
-    next()
-  }).catch(err=>{
-    console.log(err)
-  })
-  // next() //call next otherwise other income request is dead
-});
+app.use(session({secret:'my secret',resave:'false',saveUninitialized:false, store:store}))
+
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 app.use(errorController.get404);
 
-// mongoConnect(()=>{
-//   //add if the user id exist
-
-//   app.listen(3000)
-// })
 
 mongoose
   .connect(
-    "mongodb+srv://saiken1:Welcome100@cluster0.5ufzjqa.mongodb.net/shopp?retryWrites=true&w=majority"
+   MONGODB_URI
   )
   .then((result) => { 
     User.findOne().then(user=>{ 
