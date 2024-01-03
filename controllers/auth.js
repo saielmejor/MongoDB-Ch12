@@ -22,12 +22,19 @@ exports.postLogin = (req, res, next) => {
 
   User.findById('658ca1cfa92ad0246833e461').then(user=>{
     req.session.isLoggedIn = true; //sets a session
-    req.session.user= user //allows to the user in the request. user 
+    req.user= user //allows to the user in the request. user 
     res.redirect("/");
   }).catch(err=>{
     console.log(err)
   })
   // next() //call next otherwise other income request is dead
+}
+
+exports.postLogout=(req,res,next)=>{ 
+  req.session.destroy(err=>{ 
+    console.log(err)
+     res.redirect('/')
+  })
 }
 
 

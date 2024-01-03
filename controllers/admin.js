@@ -22,7 +22,7 @@ exports.postAddProduct = (req, res, next) => {
     price: price,
     description: description,
     imageUrl: imageUrl,
-    userId: req.session.user, // access to the user id from request
+    userId: req.user, // access to the user id from request
   }); // save it as a constructor include the user id
   product
     .save()
@@ -45,6 +45,7 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: "Admin Products",
         path: "/admin/products",
+        isAuthenticated:req.session.isLoggedIn
       });
     })
     .catch((err) => {
