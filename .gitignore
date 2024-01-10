@@ -1,1 +1,8 @@
-node_modules
+// .gitignore
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# api keys
+.env
