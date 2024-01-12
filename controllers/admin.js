@@ -37,7 +37,8 @@ exports.postAddProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.find()
+  //restrict the data we can see in the admin products. Only users who created the product can view and edit 
+  Product.find({userId:req.user._id})
     .select("title price -_id")
     .populate("userId", "name") // populates the user id 
     .then((products) => {
