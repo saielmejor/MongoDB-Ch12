@@ -39,8 +39,8 @@ exports.postAddProduct = (req, res, next) => {
 exports.getProducts = (req, res, next) => {
   //restrict the data we can see in the admin products. Only users who created the product can view and edit 
   Product.find({userId:req.user._id})
-    .select("title price -_id")
-    .populate("userId", "name") // populates the user id 
+    // .select("title price -_id")
+    // .populate("userId", "name") // populates the user id 
     .then((products) => {
       res.render("admin/products", {
         prods: products,
@@ -84,18 +84,21 @@ exports.postEditProduct = (req, res, next) => {
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
 
-  Product.findById(prodId)
+  Product.findById(prodId) 
     .then((product) => {
+      if (product.userId.toString() !== req.user._id.toString()){ 
+        return res.redirect('/')// redirect to the home screen
+      }
       product.title = updateTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
       product.imageUrl = updatedImageUrl;
-      return product.save();
+      return product.save().then((result) => {
+        console.log("UPDATED PRODUCT");
+        res.redirect("/admin/products");
+      });
     })
-    .then((result) => {
-      console.log("UPDATED PRODUCT");
-      res.redirect("/admin/products");
-    })
+    
     .catch((err) => {
       console.log(err);
     });
@@ -103,7 +106,7 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findByIdAndDelete(prodId)
+  Product.deleteOne({_id:prodId,userId:req.user._id})
     .then(() => {
       console.log("Destroyed product");
       res.redirect("/admin/products ");
