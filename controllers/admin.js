@@ -17,10 +17,11 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
+  const imageUrl = req.body.image;
   const price = req.body.price;
   const description = req.body.description;
   const errors=validationResult(req)
+  console.log(imageUrl)
   //left side are the keys from the models and the right side is the req body
 
   if(!errors.isEmpty()){ 

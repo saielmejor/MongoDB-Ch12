@@ -18,7 +18,7 @@ router.post(
   "/add-product",
   [
     body("title","title has to be valid").isAlphanumeric().isLength({ min: 3 }).trim(),
-    body("imageUrl","Please type a valid url ").isURL(),
+    body("imageUrl","Please type a valid url "),
     body("price","Please write a number ").isFloat(),
     body("description","Please type a description ").isLength({ min: 5, max: 400 }).trim(),
   ],
