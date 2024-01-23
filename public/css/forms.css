@@ -27,3 +27,9 @@
   margin: auto;
   display: block;
 }
+
+.form-control input.invalid,
+.form-control textarea.invalid{ 
+  border-color:red; 
+
+}
