@@ -17,11 +17,29 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
-  const imageUrl = req.body.image;
+  const image = req.file;
   const price = req.body.price;
   const description = req.body.description;
   const errors=validationResult(req)
-  console.log(imageUrl)
+
+  if (!image){ 
+    return res.status(422).render("admin/edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasError:true,
+      product: { 
+        title:title, 
+        price: price, 
+        description: description
+
+
+      },
+      errorMessage:"Invalid imag. It is not supported  ",
+      validationErrors:[]
+    });
+  }
+ 
   //left side are the keys from the models and the right side is the req body
 
   if(!errors.isEmpty()){ 
@@ -32,7 +50,6 @@ exports.postAddProduct = (req, res, next) => {
       hasError:true,
       product: { 
         title:title, 
-        imageUrl:imageUrl, 
         price: price, 
         description: description
 
@@ -42,12 +59,15 @@ exports.postAddProduct = (req, res, next) => {
       validationErrors:errors.array()
     });
   }
+
+  const imageUrl=image.path;
   const product = new Product({
     // _id: new mongoose.Types.ObjectId('65ae882fdd1deb8c2d027438'),
     title: title,
     price: price,
+    imageUrl:imageUrl,
     description: description,
-    imageUrl: imageUrl,
+
     userId: req.user, // access to the user id from request
   }); // save it as a constructor include the user id
   product
@@ -139,7 +159,7 @@ exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updateTitle = req.body.title;
   const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedDesc = req.body.description;
   const errors=validationResult(req)
   //left side are the keys from the models and the right side is the req body
@@ -152,7 +172,7 @@ exports.postEditProduct = (req, res, next) => {
       hasError:true,
       product: { 
         title:updateTitle, 
-        imageUrl:updatedImageUrl, 
+         
         price: updatedPrice, 
         description: updatedDesc,
         _id:prodId // you need to cast the id so it is passed to the product 
@@ -171,7 +191,12 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updateTitle;
       product.price = updatedPrice;
       product.description = updatedDesc;
-      product.imageUrl = updatedImageUrl;
+
+      //check if image is there
+      if (image){ 
+        product.imageUrl = image.path;
+      }
+      
       return product.save().then((result) => {
         console.log("UPDATED PRODUCT");
         res.redirect("/admin/products");
