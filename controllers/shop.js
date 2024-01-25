@@ -1,3 +1,5 @@
+const fs=require('fs') // allows us to read file 
+const path=require('path')
 const Product = require("../models/product");
 // const Cart = require("../models/cart");
 const Order = require("../models/orders");
@@ -166,3 +168,15 @@ exports.getCheckout = (req, res, next) => {
     isAuthenticated:req.session.isLoggedIn
   });
 };
+
+exports.getInvoice=(req,res,next)=>{ 
+  const orderId=req.params.orderId; 
+  const invoiceName='invoice-'+orderId+'.docx'
+  const invoicePath=path.join('data','invoices',invoiceName)
+  fs.readFile(invoicePath,(err,data)=>{ 
+    if(err){ 
+      return next(err); 
+    }
+res.send(data) // sends the file
+  })
+}
