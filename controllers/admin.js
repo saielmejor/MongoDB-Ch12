@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const mongoose=require('mongoose')
+const fileHelper=require('../util/file')
 const { validationResult}=require('express-validator')
 //request the object id
 
@@ -194,6 +195,7 @@ exports.postEditProduct = (req, res, next) => {
 
       //check if image is there
       if (image){ 
+        fileHelper.deleteFile(product.imageUrl); // delete file 
         product.imageUrl = image.path;
       }
       
@@ -212,14 +214,22 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({_id:prodId,userId:req.user._id})
-    .then(() => {
-      console.log("Destroyed product");
-      res.redirect("/admin/products ");
-    })
-    .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
-    });
+  Product.findById(prodId).then(product=>{ 
+    if(!product){ 
+      return next(new Error('Product is not found '))
+    }
+    fileHelper.deleteFile(product.imageUrl); 
+    return  Product.deleteOne({_id:prodId,userId:req.user._id}) 
+  }).then(() => {
+    console.log("Destroyed product");
+    res.redirect("/admin/products ");
+  })
+  .catch((err) => {
+    const error=new Error(err)
+    error.httpStatusCode=500 
+    return next(error)
+  })
+
+ 
+    
 };

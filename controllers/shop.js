@@ -1,9 +1,11 @@
-const fs=require('fs') // allows us to read file 
-const path=require('path')
+const fs = require("fs"); // allows us to read file
+const path = require("path");
 const Product = require("../models/product");
 // const Cart = require("../models/cart");
 const Order = require("../models/orders");
 const orders = require("../models/orders");
+
+const PDFDocument = require("pdfkit");
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -13,13 +15,13 @@ exports.getProducts = (req, res, next) => {
         prods: products,
         pageTitle: "All products",
         path: "/products",
-        isAuthenticated:req.session.isLoggedIn
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -33,13 +35,13 @@ exports.getProduct = (req, res, next) => {
         product: product,
         pageTitle: product.title,
         path: "/products",
-        isAuthenticated:req.session.isLoggedIn
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -51,13 +53,12 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: "Shop",
         path: "/",
-       
       });
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -70,13 +71,13 @@ exports.getCart = (req, res, next) => {
         path: "/cart",
         pageTitle: "Your Cart",
         products: products,
-        isAuthenticated:req.session.isLoggedIn
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 exports.postCart = (req, res, next) => {
@@ -90,9 +91,9 @@ exports.postCart = (req, res, next) => {
       res.redirect("/cart");
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -104,9 +105,9 @@ exports.postCartDeleteProduct = (req, res, next) => {
       res.redirect("/cart");
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -118,14 +119,14 @@ exports.getOrders = (req, res, next) => {
         path: "/orders",
         pageTitle: "Your Orders",
         orders: orders,
-         //retrieves all orders
-         isAuthenticated:req.session.isLoggedIn
+        //retrieves all orders
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -140,7 +141,6 @@ exports.postOrder = (req, res, next) => {
       });
       const order = new Order({
         user: {
-          
           userId: req.user,
         },
         products: products,
@@ -155,9 +155,9 @@ exports.postOrder = (req, res, next) => {
       res.redirect("/orders");
     })
     .catch((err) => {
-      const error=new Error(err)
-      error.httpStatusCode=500 
-      return next(error)
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -165,32 +165,73 @@ exports.getCheckout = (req, res, next) => {
   res.render("shop/checkout", {
     path: "/checkout",
     pageTitle: "Checkout",
-    isAuthenticated:req.session.isLoggedIn
+    isAuthenticated: req.session.isLoggedIn,
   });
 };
 
-exports.getInvoice=(req,res,next)=>{ 
-  const orderId=req.params.orderId; 
-  //check if the order is added by the user 
-  Order.findById(orderId).then(order=>{ 
-    if(!order){ 
-      return next(new Error('No order found. '))
-    }
-    if(order.user.userId.toString() !== req.user._id.toString()){ 
-      return next(new Error('Unauthorized '))
-    }
-    const invoiceName='invoice-'+orderId+'.pdf'
-    const invoicePath=path.join('data','invoices',invoiceName)
-    fs.readFile(invoicePath,(err,data)=>{ 
-      if(err){ 
-        return next(err); 
+exports.getInvoice = (req, res, next) => {
+  const orderId = req.params.orderId;
+  //check if the order is added by the user
+  Order.findById(orderId)
+    .then((order) => {
+      if (!order) {
+        return next(new Error("No order found. "));
       }
-      res.setHeader('Content-Type','application/pdf')
-      res.setHeader('Content-Disposition','inline; filename="'+invoiceName+ '"') // open the file inline 
-  res.send(data) // sends the file
-    })
-  }).catch(err=>{ 
-    console.log(err)
-  })
+      if (order.user.userId.toString() !== req.user._id.toString()) {
+        return next(new Error("Unauthorized "));
+      }
+      const invoiceName = "invoice-" + orderId + ".pdf";
+      const invoicePath = path.join("data", "invoices", invoiceName);
 
-}
+      const pdfDoc = new PDFDocument(); // pdf document (readable stream)
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        'inline; filename="' + invoiceName + '"'
+      );
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc.pipe(res); // //forward to to the writeable stream
+
+      pdfDoc.fontSize(26).text("Invoice", {
+        underline: true,
+      });
+
+      pdfDoc.text("------------------------------");
+      let totalPrice=0
+      order.products.forEach((prod) => {
+        totalPrice=totalPrice+prod.quantity*prod.product.price
+        pdfDoc.fontSize(14).text(
+          prod.product.title +
+            "-" +
+            prod.quantity +
+            "x" +
+            "$" +
+            prod.product.price
+        );
+      });
+
+      pdfDoc.text('------------')
+      pdfDoc.fontSize(20).text('Total PriceL $'+totalPrice)
+
+      pdfDoc.end(); // this is a note to close the writeable text
+      //for bigger file it will take long to read the file .
+      //   fs.readFile(invoicePath,(err,data)=>{
+      //     if(err){
+      //       return next(err);
+      //     }
+      //     res.setHeader('Content-Type','application/pdf')
+      //     res.setHeader('Content-Disposition','inline; filename="'+invoiceName+ '"') // open the file inline
+      // res.send(data) // sends the file
+      //   })
+
+      //streaming the data
+
+      // const file = fs.createReadStream(invoicePath);
+
+      // file.pipe(res) // pipe method to
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
