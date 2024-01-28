@@ -7,6 +7,7 @@ const orders = require("../models/orders");
 
 const PDFDocument = require("pdfkit");
 
+const ITEMS_PER_PAGE = 1;
 exports.getProducts = (req, res, next) => {
   Product.find()
     .then((products) => {
@@ -46,13 +47,32 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
+  //retrieves page  number
+  const page = +req.query.page ||1;
+
   //Sequelize findAll
+
+  // use product find and count the number of products
+  let totalItems;
   Product.find()
+    .countDocuments()
+    .then((numProducts) => {
+      totalItems = numProducts;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then((products) => {
       res.render("shop/index", {
         prods: products,
         pageTitle: "Shop",
         path: "/",
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page < 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE),
       });
     })
     .catch((err) => {
@@ -198,21 +218,23 @@ exports.getInvoice = (req, res, next) => {
       });
 
       pdfDoc.text("------------------------------");
-      let totalPrice=0
+      let totalPrice = 0;
       order.products.forEach((prod) => {
-        totalPrice=totalPrice+prod.quantity*prod.product.price
-        pdfDoc.fontSize(14).text(
-          prod.product.title +
-            "-" +
-            prod.quantity +
-            "x" +
-            "$" +
-            prod.product.price
-        );
+        totalPrice = totalPrice + prod.quantity * prod.product.price;
+        pdfDoc
+          .fontSize(14)
+          .text(
+            prod.product.title +
+              "-" +
+              prod.quantity +
+              "x" +
+              "$" +
+              prod.product.price
+          );
       });
 
-      pdfDoc.text('------------')
-      pdfDoc.fontSize(20).text('Total PriceL $'+totalPrice)
+      pdfDoc.text("------------");
+      pdfDoc.fontSize(20).text("Total PriceL $" + totalPrice);
 
       pdfDoc.end(); // this is a note to close the writeable text
       //for bigger file it will take long to read the file .
